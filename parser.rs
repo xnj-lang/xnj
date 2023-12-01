@@ -128,5 +128,6 @@ pub mod main{
         } else {
             eprintln!("Compilation failed: {:?}", String::from_utf8_lossy(&output.stderr));
         }
+        remove_file("run.rs").expect("Failed to remove file");
     }
 }
