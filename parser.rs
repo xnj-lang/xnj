@@ -1,4 +1,8 @@
-pub mod parse{
+pub mod main{
+    use std::process::Command;
+    use std::fs::write;
+    use std::fs::remove_file;
+
     enum Macros {
         Output,
         Bracket,
@@ -13,10 +17,8 @@ pub mod parse{
         let mut string_oper = false;
         let mut count = 0;
         let mut curr_string = String::new();
-
         for char in code {
             command.push(char);
-
             if string_oper && char != '"' {
                 if let Some(&Some(Macros::String)) = opers.last() {
                     curr_string.push(char);
@@ -85,21 +87,21 @@ pub mod parse{
         }
         curr_oper.push(';');
         curr_oper.push('}');
-        std::fs::write("run.rs", curr_oper).expect("Failed to write file");
+        write("run.rs", curr_oper).expect("Failed to write file");
 
-        let output = std::process::Command::new("rustc")
+        let output = Command::new("rustc")
             .args(&["run.rs"])
             .output()
             .expect("Failed to execute command");
 
         if output.status.success() {
-            let run_output = std::process::Command::new("./run")
+            let run_output = Command::new("./run")
                 .output()
                 .expect("Failed to execute command");
             println!("{}", String::from_utf8_lossy(&run_output.stdout));
         } else {
             eprintln!("Compilation failed: {:?}", String::from_utf8_lossy(&output.stderr));
         }
-        std::fs::remove_file("run.rs").expect("Failed to remove file");
+        remove_file("run.rs").expect("Failed to remove file");
     }
 }
