@@ -1,6 +1,29 @@
-I practice creating a compiler in Rust language, this compiler compiles .xnj files, to try the compiler, you need to download the executable file, open the command line, go to the directory or add the compiler to the path environment, and go to the directory where the file main.xnj, example of using xnjc main.xnj, and then go to the directory where the main.xnj file is located.
-code example:
-main{
+# XNJ Compiler
+
+XNJ Compiler is a simple compiler written in Rust that compiles files with the `.xnj` extension.
+
+## Getting Started
+
+To use the compiler, follow these steps:
+
+1. **Download the Executable:**
+   - Download the executable file from the [Releases](https://github.com/yourusername/xnj-compiler/releases) page.
+
+2. **Set Up Environment:**
+   - Open the command line.
+   - Navigate to the directory containing the executable or add the compiler to the system's PATH.
+
+3. **Compile `.xnj` File:**
+   - Navigate to the directory containing your `main.xnj` file.
+   - Run the compiler using the command:
+     ```sh
+     xnjc main.xnj
+     ```
+
+## Example Code
+
+`main.xnj`:
+```rust
+main[Status]
     output("Hello World");
-    Ok();
-}
+    Ok()
