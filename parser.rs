@@ -11,6 +11,8 @@ pub mod main {
         Semicolon,
         Main,
         Ok,
+        Outputln,
+        Linefeed
         //Curly,
     }
 
@@ -18,36 +20,48 @@ pub mod main {
         if metadata("run.rs").is_ok() {
             remove_file("run.rs").expect("Failed to remove file");
         }
-        let macros_vec: Vec<&str> = vec!["output", "(", ")", "\"", ";", "main[Status]", "Ok()", "}"];
+        let macros_vec: Vec<&str> = vec!["op", "(", ")", "\"", ";", "main[Status]", "Ok()", "}", "opln"];
         let code = code.chars().collect::<Vec<char>>();
         let mut command = String::new();
         let mut opers: Vec<Option<Macros>> = Vec::new();
         let mut string_oper = false;
         let mut count = 0;
         let mut curr_string = String::new();
-
-        for char in code {
-            command.push(char);
-            if char.is_whitespace() {
+        let mut strings = Vec::new();
+        for i in 0..code.len() {
+            command.push(code[i]);
+            if code[i].is_whitespace() && !string_oper {
                 if !command.trim().is_empty() {
                     continue;
                 } else {
                     command.clear();
                     continue;
                 }
-            } else if string_oper && char != '"' {
-                if let Some(&Some(Macros::String)) = opers.last() {
-                    curr_string.push(char);
-                    command.clear();
-                } else {
-                    opers.push(Some(Macros::String));
-                    curr_string.push(char);
-                    command.clear();
-                }
-            } else if macros_vec.iter().any(|&s| s.contains(&*command)) {
+            }
+            else if string_oper && code[i] != '"' {
+            if let Some(&Some(Macros::String)) = opers.last() {
+                curr_string.push(code[i]);
+                command.clear();
+            } else {
+                opers.push(Some(Macros::String));
+                curr_string.push(code[i]);
+                command.clear();
+            }
+        }
+            else if macros_vec.iter().any(|&s| s.contains(&*command)) {
                 match command.as_str() {
-                    "output" => {
-                        opers.push(Some(Macros::Output));
+                    "op" => {
+                        if code[i+1] != 'l' {
+                            opers.push(Some(Macros::Output));
+                            command.clear();
+                        }
+                        else{
+                            continue
+                        }
+                    }
+                    "opln" => {
+                        opers.push(Some(Macros::Outputln));
+                        opers.push(Some(Macros::Linefeed));
                         command.clear();
                     }
                     "main[Status]" => {
@@ -77,6 +91,8 @@ pub mod main {
                         if count == 1 {
                             string_oper = true;
                         } else {
+                            strings.push(curr_string.clone());
+                            curr_string.clear();
                             string_oper = false;
                             count = 0;
                         }
@@ -85,12 +101,13 @@ pub mod main {
                 }
             }
         }
-
         let mut curr_oper = String::new();
         let mut used = false;
         let mut current_index = 0;
-
+        let mut lf = false;
+        let mut clear = false;
         let total_operators = opers.len();
+        let mut stringindex = 0;
 
         while current_index < total_operators {
             if let Some(oper) = &opers[current_index] {
@@ -105,12 +122,25 @@ pub mod main {
                         }
                     }
                     Macros::String => {
-                        curr_oper.push_str(&curr_string);
-                        curr_string.clear();
+                        curr_oper.push_str(&strings[stringindex]);
+                        stringindex+=1;
                     }
                     Macros::Main => curr_oper.push_str("fn main(){ \n"),
                     Macros::Output => curr_oper.push_str("print!"),
-                    Macros::Quotes => curr_oper.push('"'),
+                    Macros::Outputln => {
+                        curr_oper.push_str("print!");
+                    }
+                    Macros::Linefeed => {
+                        lf = true;
+                    }
+                    Macros::Quotes => {
+                        curr_oper.push('"');
+                        clear = true;
+                        if lf{
+                            curr_oper.push_str("\n");
+                            lf = false;
+                        }
+                    },
                     Macros::Semicolon => curr_oper.push_str(";\n"),
                     Macros::Ok => {
                         curr_oper.push_str("print!(\"\nProcess finished with exit status Ok\");");
@@ -126,6 +156,7 @@ pub mod main {
             current_index += 1;
         }
 
+
         write("run.rs", curr_oper).expect("Failed to write file");
         let output = Command::new("rustc")
             .args(&["run.rs"])
@@ -136,12 +167,12 @@ pub mod main {
             let run_output = Command::new("./run")
                 .output()
                 .expect("Failed to execute command");
-            remove_file("run.rs").expect("Failed to remove file");
+            //remove_file("run.rs").expect("Failed to remove file");
             eprintln!("{}", String::from_utf8_lossy(&run_output.stdout));
             exit(1);
         } else {
             //eprintln!("Compilation failed: {:?}", String::from_utf8_lossy(&output.stderr));
-            remove_file("run.rs").expect("Failed to remove file");
+            //remove_file("run.rs").expect("Failed to remove file");
             eprintln!("Process finished with exit status Err");
             exit(1);
         }
