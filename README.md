@@ -25,5 +25,8 @@ To use the compiler, follow these steps:
 `main.xnj`:
 ```rust
 main[Status]
-    op("Hello World");
-    Ok()
+    crt-int-var_name:10; // Creating a variable "var_name" of int type, that stores the number 10
+    op("{var_name}"); // Variable "var_name" output
+    var_name++ // Incrementation "var_name" (+1)
+    opln("{var_name}"); // Output the variable "var_name" on a new line
+    Ok() // Keyword to end the program
