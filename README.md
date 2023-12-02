@@ -25,5 +25,5 @@ To use the compiler, follow these steps:
 `main.xnj`:
 ```rust
 main[Status]
-    output("Hello World");
+    op("Hello World");
     Ok()
