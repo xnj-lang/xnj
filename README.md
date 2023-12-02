@@ -7,7 +7,7 @@ XNJ Compiler is a simple compiler written in Rust that compiles files with the `
 To use the compiler, follow these steps:
 
 1. **Download the Executable:**
-   - Download the executable file from the [Releases](https://github.com/yourusername/xnj-compiler/releases) page.
+   - Download the executable file from the [Releases](https://github.com/xinajjj/xnj-compiler/releases) page.
 
 2. **Set Up Environment:**
    - Open the command line.
