@@ -15,21 +15,24 @@ pub mod main {
         INT32,
         Curly,
         Fmt,
-        PP
+        Decrement,
+        Increment
     }
 
     pub fn parse(code: &str) {
         if metadata("run.rs").is_ok() { remove_file("run.rs").expect("Failed to remove file");}
 
         let macros_vec: Vec<&str> = vec!["op", "(", ")", "\"", ";", "main[Status]", "Ok()", "}", "opln", "crt-int-:", "{"];
-        let keyw: Vec<&str> = vec!["++"];
+        let increment: Vec<&str> = vec!["++"];
+        let decrement: Vec<&str> = vec!["--"];
         let code = code.chars().collect::<Vec<char>>();
         let mut opers: Vec<Option<Macros>> = Vec::new();
         let mut strings = Vec::new();
         let mut varnames = Vec::new();
         let mut varval: Vec<i32> = Vec::new();
         let mut fmts: Vec<String> = Vec::new();
-        let mut ppnames: Vec<String> = Vec::new();
+        let mut innames: Vec<String> = Vec::new();
+        let mut denames: Vec<String> = Vec::new();
 
         let mut command = String::new();
         let mut curr_string = String::new();
@@ -38,7 +41,8 @@ pub mod main {
         let mut varname = String::new();
         let mut number = String::new();
         let mut fmtn = "".to_string();
-        let mut fmtp = "".to_string();
+        let mut fmtin = "".to_string();
+        let mut fmtde = "".to_string();
 
         let mut count_quotes = 0;
         let mut count_curly = 0;
@@ -51,7 +55,8 @@ pub mod main {
         let mut itsnumber = false;
         let mut fmtoper = false;
 
-        let mut ppindex = 0;
+        let mut inindex = 0;
+        let mut deindex = 0;
         let mut intindex = 0;
         let mut nameindex = 0;
         let mut current_index = 0;
@@ -109,10 +114,18 @@ pub mod main {
                     command.clear();
                 }
             }
-            else if keyw.iter().any(|&s| command.contains(s)) {
+            else if increment.iter().any(|&s| command.contains(s)) {
                 if command.ends_with("++") {
-                    if let Some(index) = command.rfind("++") { ppnames.push(command[..index].to_string()); }
-                    opers.push(Some(Macros::PP));
+                    if let Some(index) = command.rfind("++") { innames.push(command[..index].to_string()); }
+                    opers.push(Some(Macros::Increment));
+                    command.clear();
+                }
+            }
+            else if decrement.iter().any(|&s| command.contains(s)) {
+                if command.ends_with("--") {
+                    if let Some(index) = command.rfind("--") { denames.push(command[..index].to_string()); }
+                    println!("ASD");
+                    opers.push(Some(Macros::Decrement));
                     command.clear();
                 }
             }
@@ -190,9 +203,10 @@ pub mod main {
 
         while current_index < opers.len() {
             if let Some(oper) = &opers[current_index] {
-                if varnames.len() - 1 >= nameindex { fmtn = varnames[nameindex].clone(); }
-                if varval.len() -1 >= intindex { fmtv = varval[intindex]; }
-                if ppnames.len() -1 >= ppindex { fmtp = ppnames[ppindex].clone(); }
+                if !varnames.is_empty() && varnames.len() - 1 >= nameindex { fmtn = varnames[nameindex].clone(); }
+                if !varval.is_empty() && varval.len() - 1 >= intindex { fmtv = varval[intindex]; }
+                if !innames.is_empty() && innames.len() - 1 >= inindex { fmtin = innames[inindex].clone(); }
+                if !denames.is_empty() && denames.len() -1 >= deindex { fmtde = denames[deindex].clone(); }
                 match oper {
                     Macros::INT32 => {
                         curr_oper.push_str(&*format!("let mut {fmtn}: i32 = {fmtv}"));
@@ -223,9 +237,13 @@ pub mod main {
                             lf = false;
                         }
                     }
-                    Macros::PP => {
-                        curr_oper.push_str(&*format!("{fmtp}+=1;"));
-                        ppindex+=1;
+                    Macros::Decrement => {
+                        curr_oper.push_str(&*format!("{fmtde}-=1;"));
+                        deindex+=1;
+                    }
+                    Macros::Increment => {
+                        curr_oper.push_str(&*format!("{fmtin}+=1;"));
+                        inindex+=1;
                     }
                     Macros::Fmt => {
                         curr_oper.push_str(&fmts[curlyindex]);
