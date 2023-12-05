@@ -64,7 +64,7 @@ pub mod parser_state {
 }
 
 pub mod lexer_state {
-    use crate::syntax_analyzer::main::tokens;
+    use crate::compiler::main::tokens;
     pub struct LexerState {
         pub operations: Vec<Option<tokens::Token>>,
         pub current_fmt_variable_name: String,
