@@ -1,4 +1,4 @@
-mod syntax_analyzer;
+mod compiler;
 mod data;
 
 use std::env::args;
@@ -7,7 +7,7 @@ use std::fs::{OpenOptions, metadata, remove_file};
 use std::process::exit;
 use std::path::Path;
 use crate::data::{global_state, parser_state, lexer_state};
-use crate::syntax_analyzer::{lexer, parser, compiler};
+use crate::compiler::{lexer, parser, compiler};
 pub use crate::lexer_state::LexerState;
 pub use crate::parser_state::ParserState;
 pub use crate::global_state::GlobalState;
